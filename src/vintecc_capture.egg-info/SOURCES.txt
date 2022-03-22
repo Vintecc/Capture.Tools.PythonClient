@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/capture/__init__.py
+src/capture/connector.py
+src/vintecc_capture.egg-info/PKG-INFO
+src/vintecc_capture.egg-info/SOURCES.txt
+src/vintecc_capture.egg-info/dependency_links.txt
+src/vintecc_capture.egg-info/top_level.txt
