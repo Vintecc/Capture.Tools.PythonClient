@@ -7,4 +7,5 @@ src/capture/connector.py
 src/vintecc_capture.egg-info/PKG-INFO
 src/vintecc_capture.egg-info/SOURCES.txt
 src/vintecc_capture.egg-info/dependency_links.txt
+src/vintecc_capture.egg-info/requires.txt
 src/vintecc_capture.egg-info/top_level.txt
