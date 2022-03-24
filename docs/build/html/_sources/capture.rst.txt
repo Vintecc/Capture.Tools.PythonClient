@@ -5,7 +5,7 @@ Submodules
 ----------
 
 capture.connector module
-------------------------
+++++++++++++++++++++++++
 
 This submodule provides an easy interface with Vintecc's data platform Capture.
 
