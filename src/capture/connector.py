@@ -106,6 +106,6 @@ def insert_data(token, data):
 
     data = {"Metrics": data}
 
-    res = r.post(url, headers=headers, data=json.dumps())
+    res = r.post(url, headers=headers, data=json.dumps(data))
     
     return res.status_code == 200

@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: vintecc-capture
-Version: 0.0.1
+Version: 0.0.2
 Summary: Package that provides a connector to data platform Capture
 Home-page: https://github.com/pypa/sampleproject
 Author: Mathijs Carlu
 Author-email: mathijs.carlu@vintecc.com
 License: UNKNOWN
-Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
+Project-URL: Bug Tracker, https://github.com/pypa/sampleproject
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
@@ -17,5 +17,5 @@ License-File: LICENSE
 
 # Example Package
 
-This package allows to connect to capture from python code
+This package allows to connect to Capture, a data platform used to capture data from industry (https://capture-data.com/en/) from python code
 
