@@ -1,5 +1,6 @@
-import requests as r
+from .exception import APIException
 import json
+import requests as r
 from urllib.parse import quote_plus
 
 def get_token(username, password):
@@ -26,8 +27,12 @@ def get_token(username, password):
     }        
     
     body = json.dumps({"Username": username, "Password": password})
-    token = r.post(url, data=body, headers=headers).text.strip('\n')
-    
+    response = r.post(url, data=body, headers=headers)
+    if response.status_code != 200:
+        raise APIException(response.status_code, response.text)
+
+    token = response.text.strip('\n')
+
     return token
 
 def get_data(token, database, query):
@@ -61,13 +66,14 @@ def get_data(token, database, query):
         'AuthVersion': 'V0.0.1',
         'Authorization': auth
     }
-    res = r.get(url, headers=headers, params=params)
+    response = r.get(url, headers=headers, params=params)
 
-    if (res.status_code == 200):
-        return res.json()['Metrics']
-    else: 
-        return None
-    
+
+    if response.status_code != 200:
+        raise APIException(response.status_code, response.text)
+
+    return response.json()['Metrics']
+
 
 def insert_data(token, data):
     """Insert data in all capture databases that are in the retention policy of the logger associated with the token. 
@@ -83,6 +89,12 @@ def insert_data(token, data):
     -------
     bool
         true if the insertion was successful, false otherwise
+
+    Raises
+    ------
+    ValueError
+        If one or more records have missing fields
+
     """
 
     url = "https://capture-vintecc.com/api/data"
@@ -94,18 +106,36 @@ def insert_data(token, data):
     }
 
     for record in data:
+        if not 'Name' in record:
+            raise ValueError("All records should contain a 'Name' field")
+
+
         if 'Tags' in record:
             for tag in record['Tags']:
                 record['Tags'][tag] = str(record['Tags'][tag])
+        else:
+            record['Tags'] = {}
+
+
         if 'Fields' in record:
             for field in record['Fields']:
                 if not isinstance(record['Fields'][field], str):
                     record['Fields'][field] = float(record['Fields'][field])
+        else:
+            record['Fields'] = {}
+
+
         if 'Timestamp' in record:
             record['Timestamp'] = str(record['Timestamp'])
+        else:
+            raise ValueError("All records should contain a 'Timestamp'.")
+
 
     data = {"Metrics": data}
 
-    res = r.post(url, headers=headers, data=json.dumps(data))
-    
-    return res.status_code == 200
+    response = r.post(url, headers=headers, data=json.dumps(data))
+
+    if response.status_code != 200:
+        raise APIException(response.status_code, response.text)
+
+    return response.status_code == 200
