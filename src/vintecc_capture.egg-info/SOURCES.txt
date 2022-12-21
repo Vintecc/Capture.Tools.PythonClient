@@ -4,6 +4,7 @@ pyproject.toml
 setup.cfg
 src/capture/__init__.py
 src/capture/connector.py
+src/capture/exception.py
 src/vintecc_capture.egg-info/PKG-INFO
 src/vintecc_capture.egg-info/SOURCES.txt
 src/vintecc_capture.egg-info/dependency_links.txt
