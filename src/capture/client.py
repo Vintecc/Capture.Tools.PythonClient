@@ -1,7 +1,7 @@
 from enum import Enum
 import json
 import httpx
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from capture._util import make_insert_ready
 
@@ -59,7 +59,7 @@ class CaptureAsyncClient:
         database_type: DatabaseType=DatabaseType.INFLUXDB,
         output_type: DataOutput=DataOutput.JSON,
         time_output: TimeOutput=TimeOutput.EPOCH
-    ) -> List[Dict]:
+    ) -> Union[List[Dict], str]:
         """Query data from the Capture API.
 
         Args:
@@ -74,11 +74,14 @@ class CaptureAsyncClient:
             Exception: An unexpected response was received from the Capture API.
 
         Returns:
-            List[Dict]: List of database records in the form of Python dictionaries. Each dictionary contains:
-                * Name: Name of the measurement/table. 
-                * Timestamp: Timestamp of the record.
-                * Tags: Dictionary of tags.
-                * Fields: Dictionary of fields.
+            For JSON output:
+                List[Dict]: List of database records in the form of Python dictionaries. Each dictionary contains:
+                    * Name: Name of the measurement/table. 
+                    * Timestamp: Timestamp of the record.
+                    * Tags: Dictionary of tags.
+                    * Fields: Dictionary of fields.
+            For CSV output:
+                str: CSV formatted string.
         """
         
         headers = {
