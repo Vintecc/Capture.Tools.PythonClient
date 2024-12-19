@@ -1,23 +1,29 @@
 capture package
-===============  
+===============
 
 Submodules
 ----------
 
-capture.connector module
-++++++++++++++++++++++++
+capture.client module
+---------------------
 
-This submodule provides an easy interface with Vintecc's data platform Capture.
+.. automodule:: capture.client
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+capture.connector module
+------------------------
 
 .. automodule:: capture.connector
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. Module contents
-.. ---------------
+Module contents
+---------------
 
-.. .. automodule:: capture
-..    :members:
-..    :undoc-members:
-..    :show-inheritance:
+.. automodule:: capture
+   :members:
+   :undoc-members:
+   :show-inheritance:
