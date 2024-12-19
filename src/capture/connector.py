@@ -2,6 +2,8 @@ import requests as r
 import json
 from urllib.parse import quote_plus
 
+from capture._util import make_insert_ready
+
 def get_token(username, password):
     """Get a valid Capture token
     
@@ -93,19 +95,8 @@ def insert_data(token, data):
         'Token': token
     }
 
-    for record in data:
-        if 'Tags' in record:
-            for tag in record['Tags']:
-                record['Tags'][tag] = str(record['Tags'][tag])
-        if 'Fields' in record:
-            for field in record['Fields']:
-                if not isinstance(record['Fields'][field], str):
-                    record['Fields'][field] = float(record['Fields'][field])
-        if 'Timestamp' in record:
-            record['Timestamp'] = str(record['Timestamp'])
+    to_insert = {"Metrics": make_insert_ready(data)}
 
-    data = {"Metrics": data}
-
-    res = r.post(url, headers=headers, data=json.dumps(data))
+    res = r.post(url, headers=headers, data=json.dumps(to_insert))
     
     return res.status_code == 200
