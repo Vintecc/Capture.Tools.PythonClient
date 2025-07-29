@@ -103,7 +103,7 @@ username = "your_username"
 password = "your_password"
 token = get_token(username, password)
 
-# Query data
+# Query data (https://vintecc.github.io/Capture.Docs.External/docs/Cloud/DataApi/QueryTimeSeriesData)
 query = 'SELECT \"TestField\" from \"fiveYears\".\"TestMeasurement\" LIMIT 3'
 database = "TestDB"
 result = get_data(api_token, database, query)
@@ -156,7 +156,7 @@ client = CaptureClient(api_token="YOUR_API_TOKEN")
 client = CaptureClient()
 client.authenticate("your_username", "your_password")
 
-# Query data
+# Query data (https://vintecc.github.io/Capture.Docs.External/docs/Cloud/DataApi/QueryTimeSeriesData)
 result = client.query(
     database="TestDB",
     query = 'SELECT \"TestField\" from \"fiveYears\".\"TestMeasurement\" LIMIT 3'
@@ -164,7 +164,7 @@ result = client.query(
 )
 print("Query result (API token):", result)
 
-# Insert data
+# Insert data (https://vintecc.github.io/Capture.Docs.External/docs/Cloud/DataApi/InsertData_ApiToken)
 data_to_insert = {
     "Metrics": [
         {
