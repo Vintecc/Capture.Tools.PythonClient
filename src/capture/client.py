@@ -9,6 +9,7 @@ from capture.capture_enums import DatabaseType, DataOutput, TimeOutput, Authoriz
 
 class CaptureClient:
 
+
     def __init__(self, base_url: str="https://capture-vintecc.com", api_token: Optional[str]=None):
         self._api_token = api_token
         self.base_url = base_url
@@ -59,6 +60,28 @@ class CaptureClient:
         is_set = self._api_token is not None and len(self._api_token) > 0
         return is_set, self._AuthorizationMethod
 
+    def request(self, method: str, url: str, **kwargs) -> r.Response:
+        """Make a generic authenticated request to the Capture backend.
+
+        Args:
+            method (str): HTTP method (e.g., 'GET', 'POST', etc.).
+            url (str): The full URL to request (or relative to base_url).
+            **kwargs: Additional arguments to pass to requests.request (e.g., params, json, data).
+
+        Returns:
+            requests.Response: The response object from requests.
+        """
+        # Use base_url if url is relative
+        if not url.startswith("http"):
+            url = self.base_url.rstrip("/") + "/" + url.lstrip("/")
+        headers = kwargs.pop("headers", {})
+        headers.setdefault('AuthVersion', 'V0.0.1')
+        if self._api_token:
+            headers.setdefault('Authorization', f'Bearer {self._api_token}')
+        response = r.request(method, url, headers=headers, **kwargs)
+        response.raise_for_status()
+        return response
+    
     def query(
         self, 
         database: str, 
@@ -220,6 +243,28 @@ class CaptureAsyncClient:
         is_set = self._api_token is not None and len(self._api_token) > 0
         return is_set, self._AuthorizationMethod
 
+    async def request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        """Make a generic authenticated async request to the Capture backend.
+
+        Args:
+            method (str): HTTP method (e.g., 'GET', 'POST', etc.).
+            url (str): The full URL to request (or relative to base_url).
+            **kwargs: Additional arguments to pass to httpx.AsyncClient.request (e.g., params, json, data).
+
+        Returns:
+            httpx.Response: The response object from httpx.
+        """
+        if not url.startswith("http"):
+            url = self.base_url.rstrip("/") + "/" + url.lstrip("/")
+        headers = kwargs.pop("headers", {})
+        headers.setdefault('AuthVersion', 'V0.0.1')
+        if self._api_token:
+            headers.setdefault('Authorization', f'Bearer {self._api_token}')
+        response = await self._client.request(method, url, headers=headers, **kwargs)
+        response.raise_for_status()
+        return response
+
+
     async def query(
         self, 
         database: str, 
@@ -320,4 +365,6 @@ class CaptureAsyncClient:
         response.raise_for_status()
 
         return response.content.decode("utf-8")
+    
+    
     
