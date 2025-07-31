@@ -1,11 +1,17 @@
 import json
-import requests as r
-import httpx
 from typing import Dict, List, Optional, Union
 
-from capture._util import make_insert_ready
+import httpx
+import requests as r
 
-from capture.capture_enums import DatabaseType, DataOutput, TimeOutput, AuthorizationMethod
+from capture._util import make_insert_ready
+from capture.capture_enums import (
+    AuthorizationMethod,
+    DatabaseType,
+    DataOutput,
+    TimeOutput,
+)
+
 
 class CaptureClient:
 
