@@ -10,20 +10,29 @@ class DataOutput(Enum):
     JSON = 0
     CSV = 1
 
+
 class DatabaseType(Enum):
     INFLUXDB = 0
     TIMESCALEDB = 1
 
+
 class TimeOutput(Enum):
-    HUMANREADABLE = 0 # 
-    EPOCH = 1 # Unix Epoch (nanoseconds)
+    HUMANREADABLE = 0
+    EPOCH = 1  # Unix Epoch (nanoseconds)
+
 
 class CaptureAsyncClient:
-
-    def __init__(self, base_url: str="https://capture-vintecc.com", api_token: Optional[str]=None):
+    def __init__(
+        self,
+        base_url: str = "https://capture-vintecc.com",
+        auth_url: str = "https://auth.captureplatform.com/api",
+        api_token: Optional[str] = None
+    ):
         self._client = httpx.AsyncClient(timeout=None)
         self._api_token = api_token
         self.base_url = base_url
+        self.auth_url = auth_url
+
         if api_token is None:
             self.data_version = 'V0.0.3'
         else:
@@ -37,7 +46,7 @@ class CaptureAsyncClient:
 
     async def authenticate(self, username: str, password: str):
         """Authenticate with the Capture API. Not needed when using an API token, as the client will be authenticated automatically. It is advised not to use Capture user credentials, but use an API token instead.
-        
+
         Args:
             username (str): Capture logger UUID or Capture username.
             password (str): Password associated with the logger or user.
@@ -49,16 +58,46 @@ class CaptureAsyncClient:
         response = await self._client.post(f"{self.base_url}/auth", json={"Username": username, "Password": password}, headers=headers)
         response.raise_for_status()
         self._api_token = response.read().decode()
-        return    
-    
+        return
+
+    def __get_auth_headers(self) -> Dict[str, str]:
+        return {
+            "AuthVersion": "V0.0.1",
+            "Auhtorization": f"Bearer {self._api_token}"
+        }
+
+    async def validateToken(self, token: str = None) -> bool:
+        """Validate a token with the capture auth server, will return true if success, false if failure
+
+        Args:
+            token (str, optional): A token to be validated, if a token is not provided, the client's internal token is used
+        
+        Raises:
+            HTTPError: The request failed with a non-success status code other than 401 unauthorized
+            
+        Returns:
+            bool: True if valid token, otherwise False
+        """
+
+        headers = { **self.__get_auth_headers() }
+        if token is not None: headers["Authorization"] = f"Bearer {token}"
+
+        response = await self._client.get(f"{self.auth_url}/userinfo", headers=headers)
+        
+        if not response.is_success and response.status_code is not 401:
+            content = response.read().decode("utf-8")
+            raise httpx.HTTPError("Failed to verify token", code=response.status_code, message=content)
+
+        return response.status_code != 401
+
     async def query(
-        self, 
-        database: str, 
+        self,
+        database: str,
         query: str,
-        database_root: str='Vintecc',
-        database_type: DatabaseType=DatabaseType.INFLUXDB,
-        output_type: DataOutput=DataOutput.JSON,
-        time_output: TimeOutput=TimeOutput.EPOCH
+        database_root: str = 'Vintecc',
+        database_type: DatabaseType = DatabaseType.INFLUXDB,
+        output_type: DataOutput = DataOutput.JSON,
+        time_output: TimeOutput = TimeOutput.EPOCH
     ) -> Union[List[Dict], str]:
         """Query data from the Capture API.
 
@@ -83,36 +122,30 @@ class CaptureAsyncClient:
             For CSV output:
                 str: CSV formatted string.
         """
-        
-        headers = {
-            'AuthVersion': 'V0.0.1',
-            'Authorization': f'Bearer {self._api_token}',
-        }
 
         params = {
-            'Db' : database,
-            'DbRoot' : database_root,
-            'DbType' : database_type.value,
-            'OutputType' : output_type.value,
-            'Query' : query,
-            'TimeOutput' : time_output.value, 
+            'Db': database,
+            'DbRoot': database_root,
+            'DbType': database_type.value,
+            'OutputType': output_type.value,
+            'Query': query,
+            'TimeOutput': time_output.value,
         }
 
-        async with self._client.stream('GET', f"{self.base_url}/api/data", headers=headers, params=params) as response_stream:
+        async with self._client.stream('GET', f"{self.base_url}/api/data", headers=self.__get_auth_headers(), params=params) as response_stream:
             response_stream.raise_for_status()
             response_bytes = await response_stream.aread()
-            
-        try: 
+
+        try:
             if output_type == DataOutput.JSON:
                 response = json.loads(response_bytes)
                 return response['Metrics']
-            elif output_type == DataOutput.CSV: 
+            elif output_type == DataOutput.CSV:
                 return response_bytes.decode('utf-8')
-        except Exception: 
+        except Exception:
             raise Exception("The Capture API returned an unexpected response.")
-        
-    
-    async def insert(self, data: List[Dict], database: Optional[str]=None, retention: Optional[str]=None) -> str:
+
+    async def insert(self, data: List[Dict], database: Optional[str] = None, retention: Optional[str] = None) -> str:
         """Insert data in Capture using the API.
 
         Args:
@@ -131,21 +164,21 @@ class CaptureAsyncClient:
         Returns:
             str: Response from the Capture API.
         """
-        if self.data_version == 'V0.0.5'and (database is None or retention is None):
-            raise ValueError("Database and retention are required when using an API token.")
+        if self.data_version == 'V0.0.5' and (database is None or retention is None):
+            raise ValueError(
+                "Database and retention are required when using an API token.")
 
         headers = {
-            'AuthVersion': 'V0.0.1',
-            'Authorization': f'Bearer {self._api_token}',
+            **self.__get_auth_headers(),
             'Content-Type': 'application/json',
             'DataVersion': self.data_version
         }
 
-        params = {"Database": database, "Retention": retention} if database and retention else {}
+        params = {"Database": database,
+                  "Retention": retention} if database and retention else {}
 
         to_insert = {"Metrics": make_insert_ready(data)}
         response = await self._client.post(f"{self.base_url}/api/data", headers=headers, params=params, json=to_insert)
         response.raise_for_status()
 
         return response.content.decode("utf-8")
-    
