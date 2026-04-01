@@ -25,7 +25,7 @@ class CaptureAsyncClient:
     def __init__(
         self,
         base_url: str = "https://capture-vintecc.com",
-        auth_url: str = "https://auth.captureplatform.com/api",
+        auth_url: str = "https://auth.capture-vintecc.com/api",
         api_token: Optional[str] = None
     ):
         self._client = httpx.AsyncClient(timeout=None)
@@ -63,7 +63,7 @@ class CaptureAsyncClient:
     def __get_auth_headers(self) -> Dict[str, str]:
         return {
             "AuthVersion": "V0.0.1",
-            "Auhtorization": f"Bearer {self._api_token}"
+            "Authorization": f"Bearer {self._api_token}"
         }
 
     async def validateToken(self, token: str = None) -> bool:
@@ -84,7 +84,7 @@ class CaptureAsyncClient:
 
         response = await self._client.get(f"{self.auth_url}/userinfo", headers=headers)
         
-        if not response.is_success and response.status_code is not 401:
+        if not response.is_success and response.status_code != 401:
             content = response.read().decode("utf-8")
             raise httpx.HTTPError("Failed to verify token", code=response.status_code, message=content)
 
