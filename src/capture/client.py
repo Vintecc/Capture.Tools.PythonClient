@@ -29,7 +29,7 @@ class CaptureAsyncClient:
         api_token: Optional[str] = None
     ):
         self._client = httpx.AsyncClient(timeout=None)
-        self._api_token = api_token
+        self._auth_token = api_token
         self.base_url = base_url
         self.auth_url = auth_url
 
@@ -57,13 +57,13 @@ class CaptureAsyncClient:
         }
         response = await self._client.post(f"{self.base_url}/auth", json={"Username": username, "Password": password}, headers=headers)
         response.raise_for_status()
-        self._api_token = response.read().decode()
+        self._auth_token = response.read().decode()
         return
 
     def __get_auth_headers(self) -> Dict[str, str]:
         return {
             "AuthVersion": "V0.0.1",
-            "Authorization": f"Bearer {self._api_token}"
+            "Authorization": f"Bearer {self._auth_token}"
         }
 
     async def validateToken(self, token: str = None) -> bool:
