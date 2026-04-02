@@ -25,7 +25,7 @@ class CaptureAsyncClient:
     def __init__(
         self,
         base_url: str = "https://capture-vintecc.com",
-        auth_url: str = "https://auth.capture-vintecc.com/api",
+        auth_url: str = None,
         api_token: Optional[str] = None
     ):
         self._client = httpx.AsyncClient(timeout=None)
@@ -78,6 +78,9 @@ class CaptureAsyncClient:
         Returns:
             bool: True if valid token, otherwise False
         """
+
+        if self.auth_url == None:
+            raise Exception("No auth server specified")
 
         headers = { **self.__get_auth_headers() }
         if token is not None: headers["Authorization"] = f"Bearer {token}"
